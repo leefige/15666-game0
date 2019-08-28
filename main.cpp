@@ -145,8 +145,13 @@ int main(int argc, char **argv) {
 
 		{ //(2) call the current mode's "update" function to deal with elapsed time:
 			auto current_time = std::chrono::high_resolution_clock::now();
+
+			// * Note: announce a static local var previous_time
+			// * this statement only executes once: to give init val for previous_time
 			static auto previous_time = current_time;
+
 			float elapsed = std::chrono::duration< float >(current_time - previous_time).count();
+			// * this statement actually refresh value of previouse_time
 			previous_time = current_time;
 
 			//if frames are taking a very long time to process,
@@ -164,6 +169,7 @@ int main(int argc, char **argv) {
 
 		//Wait until the recently-drawn frame is shown before doing it all again:
 		SDL_GL_SwapWindow(window);
+		// Vsync?
 	}
 
 

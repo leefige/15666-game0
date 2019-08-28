@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "algorithm": "cpp",
+        "chrono": "cpp",
+        "vector": "cpp",
+        "ratio": "cpp",
+        "iostream": "cpp",
+        "ostream": "cpp",
+        "memory": "cpp"
+    },
+    "C_Cpp.default.includePath": [
+        "../nest-libs/windows/glm/include",
+        "../nest-libs/windows/libpng/include",
+        "../nest-libs/windows/SDL2/include",
+        "../nest-libs/windows/zlib/include",
+    ]
+}
