@@ -3,7 +3,7 @@
  * Created Date: 2019-08-28
  * Author: Yifei Li - yifeili3
  * -----
- * Last Modified: 2019-08-29
+ * Last Modified: 2019-08-30
  * Modified By: Yifei Li
  * -----
  * Based on CMU 15-666 game0 code
@@ -31,8 +31,18 @@ struct PongMode : Mode {
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 
-	// helper functions
-	glm::vec4 ball_split(glm::vec4 const &old_ball);
+	struct Ball {
+		glm::vec2 ball;
+		glm::vec2 ball_velocity;
+
+		Ball () : ball(.0f, .0f), ball_velocity(-1.0f, 0.0f) {}
+		Ball (float x, float y) : ball(x, y), ball_velocity(-1.0f, 0.0f) {}
+		Ball (float x, float y, float vx, float vy) : ball(x, y), ball_velocity(vx, vy) {}
+
+		Ball (glm::vec2 ball_) : ball(ball_), ball_velocity(-1.0f, 0.0f) {}
+		Ball (glm::vec2 ball_, glm::vec2 vel_) : ball(ball_), ball_velocity(vel_) {}
+		Ball (glm::vec2 ball_, float vx, float vy) : ball(ball_), ball_velocity(vx, vy) {}
+	};
 
 	//----- game state -----
 
@@ -43,8 +53,7 @@ struct PongMode : Mode {
 	glm::vec2 left_paddle = glm::vec2(-court_radius.x + 0.5f, 0.0f);
 	glm::vec2 right_paddle = glm::vec2( court_radius.x - 0.5f, 0.0f);
 
-	std::vector <glm::vec2> balls;
-	glm::vec2 ball_velocity = glm::vec2(-1.0f, 0.0f);
+	std::vector <Ball> balls;
 
 	uint32_t left_score = 0;
 	uint32_t right_score = 0;
