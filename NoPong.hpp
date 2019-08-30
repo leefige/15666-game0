@@ -64,7 +64,7 @@ struct PongMode : Mode {
 		glm::u8vec4 Color;
 		glm::vec2 TexCoord;
 	};
-	static_assert(sizeof(Vertex) == 4*3 + 1*4 + 4*2, "PongMode::Vertex should be packed");
+	static_assert(sizeof(Vertex) == 4*3 + 1*4 + 4*2, "NoPong::Vertex should be packed");
 
 	//Shader program that draws transformed, vertices tinted with vertex colors:
 	ColorTextureProgram color_texture_program;

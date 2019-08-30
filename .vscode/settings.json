@@ -6,7 +6,8 @@
         "ratio": "cpp",
         "iostream": "cpp",
         "ostream": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "deque": "cpp"
     },
     "C_Cpp.default.includePath": [
         "../nest-libs/windows/glm/include",

@@ -3,7 +3,7 @@
  * Created Date: 2019-08-28
  * Author: Yifei Li - yifeili3
  * -----
- * Last Modified: 2019-08-28
+ * Last Modified: 2019-08-29
  * Modified By: Yifei Li
  * -----
  * Based on CMU 15-666 game0 code
@@ -19,11 +19,13 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <random>
+#include <iostream>
 
 PongMode::PongMode() {
 
 	//set up trail as if ball has been here for 'forever':
 	ball_trail.clear();
+	// emplace_back: push_back an in-place constructed elem
 	ball_trail.emplace_back(ball, trail_length);
 	ball_trail.emplace_back(ball, 0.0f);
 
@@ -183,7 +185,7 @@ void PongMode::update(float elapsed) {
 	//---- collision handling ----
 
 	//paddles:
-	auto paddle_vs_ball = [this](glm::vec2 const &paddle) {
+	auto paddle_vs_ball = [this](glm::vec2 const &paddle, bool is_user) {
 		//compute area of overlap:
 		glm::vec2 min = glm::max(paddle - paddle_radius, ball - ball_radius);
 		glm::vec2 max = glm::min(paddle + paddle_radius, ball + ball_radius);
@@ -213,9 +215,17 @@ void PongMode::update(float elapsed) {
 			float vel = (ball.y - paddle.y) / (paddle_radius.y + ball_radius.y);
 			ball_velocity.y = glm::mix(ball_velocity.y, vel, 0.75f);
 		}
+
+		if (is_user) {
+			right_score += 1;
+			std::cout << "eat 1 ball" << std::endl;
+		} else {
+			left_score += 1;
+			std::cout << "add 1 ball" << std::endl;
+		}
 	};
-	paddle_vs_ball(left_paddle);
-	paddle_vs_ball(right_paddle);
+	paddle_vs_ball(left_paddle, true);
+	paddle_vs_ball(right_paddle, false);
 
 	//court walls:
 	if (ball.y > court_radius.y - ball_radius.y) {
@@ -235,14 +245,16 @@ void PongMode::update(float elapsed) {
 		ball.x = court_radius.x - ball_radius.x;
 		if (ball_velocity.x > 0.0f) {
 			ball_velocity.x = -ball_velocity.x;
-			left_score += 1;
+			// hit ai wall
+			// left_score += 1;
 		}
 	}
 	if (ball.x < -court_radius.x + ball_radius.x) {
 		ball.x = -court_radius.x + ball_radius.x;
 		if (ball_velocity.x < 0.0f) {
 			ball_velocity.x = -ball_velocity.x;
-			right_score += 1;
+			// hit user wall
+			// right_score += 1;
 		}
 	}
 
