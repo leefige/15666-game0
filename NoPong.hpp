@@ -3,7 +3,7 @@
  * Created Date: 2019-08-28
  * Author: Yifei Li - yifeili3
  * -----
- * Last Modified: 2019-08-28
+ * Last Modified: 2019-08-29
  * Modified By: Yifei Li
  * -----
  * Based on CMU 15-666 game0 code
@@ -31,6 +31,9 @@ struct PongMode : Mode {
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 
+	// helper functions
+	glm::vec4 ball_split(glm::vec4 const &old_ball);
+
 	//----- game state -----
 
 	glm::vec2 court_radius = glm::vec2(7.0f, 5.0f);
@@ -40,7 +43,7 @@ struct PongMode : Mode {
 	glm::vec2 left_paddle = glm::vec2(-court_radius.x + 0.5f, 0.0f);
 	glm::vec2 right_paddle = glm::vec2( court_radius.x - 0.5f, 0.0f);
 
-	glm::vec2 ball = glm::vec2(0.0f, 0.0f);
+	std::vector <glm::vec2> balls;
 	glm::vec2 ball_velocity = glm::vec2(-1.0f, 0.0f);
 
 	uint32_t left_score = 0;
