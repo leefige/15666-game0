@@ -17,7 +17,7 @@ Control:
 
 Rules:
 
-- The mother Pong (ball with rainbow tail) will SPLIT when hitting opposite panel OR hitting left/right wall for several times. Player need to "catch" cloned Pongs (without tail) and avoid mother Pong.
+- The mother Pong (ball with rainbow tail) will SPLIT when hitting opposite panel OR hitting left/right wall for several times. Player needs to "catch" cloned Pongs (without tail) and avoid mother Pong.
 - Number of caught Pongs displays on top-left (black box), while remaining life displays on top-right (red box).
 
 Goals: catch as many cloned Pongs as possible.
