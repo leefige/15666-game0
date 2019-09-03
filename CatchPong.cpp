@@ -30,7 +30,7 @@ CatchPong::CatchPong() {
 	ball_trail.clear();
 
 	glm::vec2 ball = glm::vec2(0.0f, 0.0f);
-	glm::vec2 ball_velocity = glm::vec2(1.0f, 1.0f);
+	glm::vec2 ball_velocity = glm::vec2(1.0f, 0.5f);
 	balls.emplace_back(ball, ball_velocity);
 
 	// emplace_back: push_back an in-place constructed elem

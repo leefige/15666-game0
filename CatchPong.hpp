@@ -35,11 +35,11 @@ struct CatchPong : Mode {
 		glm::vec2 ball;
 		glm::vec2 ball_velocity;
 
-		Ball () : ball(.0f, .0f), ball_velocity(1.0f, 1.0f) {}
-		Ball (float x, float y) : ball(x, y), ball_velocity(1.0f, 1.0f) {}
+		Ball () : ball(.0f, .0f), ball_velocity(1.0f, 0.5f) {}
+		Ball (float x, float y) : ball(x, y), ball_velocity(1.0f, 0.5f) {}
 		Ball (float x, float y, float vx, float vy) : ball(x, y), ball_velocity(vx, vy) {}
 
-		Ball (glm::vec2 ball_) : ball(ball_), ball_velocity(1.0f, 1.0f) {}
+		Ball (glm::vec2 ball_) : ball(ball_), ball_velocity(1.0f, 0.5f) {}
 		Ball (glm::vec2 ball_, glm::vec2 vel_) : ball(ball_), ball_velocity(vel_) {}
 		Ball (glm::vec2 ball_, float vx, float vy) : ball(ball_), ball_velocity(vx, vy) {}
 		
