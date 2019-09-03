@@ -2,7 +2,7 @@
 #include "Mode.hpp"
 
 //The 'GameMode' mode plays the game:
-#include "NoPong.hpp"
+#include "CatchPong.hpp"
 #include "GameOver.hpp"
 
 //GL.hpp will include a non-namespace-polluting set of opengl prototypes:
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
 	//create window:
 	SDL_Window *window = SDL_CreateWindow(
-		"This is NOT Pong!", //TODO: remember to set a title for your game!
+		"Catch Pong! This is NOT Pong!", //TODO: remember to set a title for your game!
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		960, 720, //TODO: modify window size if you'd like
 		SDL_WINDOW_OPENGL
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
 	//SDL_ShowCursor(SDL_DISABLE);
 
 	//------------ create game mode + make current --------------
-	Mode::set_current(std::make_shared< NoPong >());
+	Mode::set_current(std::make_shared< CatchPong >());
 
 	//------------ main loop ------------
 
@@ -127,7 +127,18 @@ int main(int argc, char **argv) {
 					break;
 				} else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_PRINTSCREEN) {
 					// --- screenshot key ---
-					std::string filename = "screenshot.png";
+					// get time stamp
+					/* Ref: cppreference */
+					time_t timer = time(NULL); /* get current time */
+					struct tm timeinfo;
+					localtime_s(&timeinfo, &timer);
+					char time_str[16];
+					strftime (time_str, 16, "%m%d%Y-%H%M%S", &timeinfo);
+
+					std::string filename = "screenshot-";
+					filename += time_str;
+					filename += ".png";
+
 					std::cout << "Saving screenshot to '" << filename << "'." << std::endl;
 					glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 					glReadBuffer(GL_FRONT);
@@ -140,7 +151,7 @@ int main(int argc, char **argv) {
 					}
 					save_png(filename, glm::uvec2(w,h), data.data(), LowerLeftOrigin);
 				} else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_ESCAPE) {
-					// --- screenshot key ---
+					// --- exit ---
 					std::cout << "Exit game" << std::endl;
 					Mode::set_current(std::make_shared< GameOver >());
 				}

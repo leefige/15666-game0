@@ -11,6 +11,7 @@
  */
 
 #include "GameOver.hpp"
+#include "CatchPong.hpp"
 
 //for the GL_ERRORS() macro:
 #include "gl_errors.hpp"
@@ -129,7 +130,12 @@ bool GameOver::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	// Exit game
 	if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_ESCAPE) {
 		std::cout << "Goodbye" << std::endl;
-		Mode::set_current(false);
+		Mode::set_current(NULL);
+	} 
+	// restart
+	else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_s) {
+		std::cout << "Restart" << std::endl;
+		Mode::set_current(std::make_shared< CatchPong >());
 	}
 
 	// truly exit, do not pass to main

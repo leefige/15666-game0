@@ -19,12 +19,12 @@
 #include <deque>
 
 /*
- * NoPong is a game mode that implements a single-player game of Pong.
+ * CatchPong is a game mode that implements a single-player game of Pong.
  */
 
-struct NoPong : Mode {
-	NoPong();
-	virtual ~NoPong();
+struct CatchPong : Mode {
+	CatchPong();
+	virtual ~CatchPong();
 
 	//functions called by main loop:
 	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;
@@ -81,7 +81,7 @@ struct NoPong : Mode {
 		glm::u8vec4 Color;
 		glm::vec2 TexCoord;
 	};
-	static_assert(sizeof(Vertex) == 4*3 + 1*4 + 4*2, "NoPong::Vertex should be packed");
+	static_assert(sizeof(Vertex) == 4*3 + 1*4 + 4*2, "CatchPong::Vertex should be packed");
 
 	//Shader program that draws transformed, vertices tinted with vertex colors:
 	ColorTextureProgram color_texture_program;

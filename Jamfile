@@ -71,7 +71,7 @@ if $(OS) = NT { #Windows
 
 #Store the names of all the .cpp files to build into a variable:
 GAME_NAMES =
-	NoPong
+	CatchPong
 	GameOver
 	main
 	load_save_png
@@ -85,4 +85,4 @@ LOCATE_TARGET = objs ; #put objects in 'objs' directory
 Objects $(GAME_NAMES:S=.cpp) ;
 
 LOCATE_TARGET = dist ; #put main in 'dist' directory
-MainFromObjects no-pong : $(GAME_NAMES:S=$(SUFOBJ)) ;
+MainFromObjects CatchPong : $(GAME_NAMES:S=$(SUFOBJ)) ;
