@@ -2,7 +2,8 @@
 #include "Mode.hpp"
 
 //The 'GameMode' mode plays the game:
-#include "PongMode.hpp"
+#include "NoPong.hpp"
+#include "GameOver.hpp"
 
 //GL.hpp will include a non-namespace-polluting set of opengl prototypes:
 #include "GL.hpp"
@@ -47,9 +48,9 @@ int main(int argc, char **argv) {
 
 	//create window:
 	SDL_Window *window = SDL_CreateWindow(
-		"gp19 pong", //TODO: remember to set a title for your game!
+		"This is NOT Pong!", //TODO: remember to set a title for your game!
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		640, 480, //TODO: modify window size if you'd like
+		960, 720, //TODO: modify window size if you'd like
 		SDL_WINDOW_OPENGL
 		| SDL_WINDOW_RESIZABLE //uncomment to allow resizing
 		| SDL_WINDOW_ALLOW_HIGHDPI //uncomment for full resolution on high-DPI screens
@@ -87,7 +88,7 @@ int main(int argc, char **argv) {
 	//SDL_ShowCursor(SDL_DISABLE);
 
 	//------------ create game mode + make current --------------
-	Mode::set_current(std::make_shared< PongMode >());
+	Mode::set_current(std::make_shared< NoPong >());
 
 	//------------ main loop ------------
 
@@ -138,6 +139,10 @@ int main(int argc, char **argv) {
 						px.a = 0xff;
 					}
 					save_png(filename, glm::uvec2(w,h), data.data(), LowerLeftOrigin);
+				} else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_ESCAPE) {
+					// --- screenshot key ---
+					std::cout << "Exit game" << std::endl;
+					Mode::set_current(std::make_shared< GameOver >());
 				}
 			}
 			if (!Mode::current) break;

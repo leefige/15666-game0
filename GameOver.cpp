@@ -10,7 +10,6 @@
  * Copyright (c) 2019
  */
 
-#include "NoPong.hpp"
 #include "GameOver.hpp"
 
 //for the GL_ERRORS() macro:
@@ -22,21 +21,7 @@
 #include <random>
 #include <iostream>
 
-uint32_t NoPong::SPLIT_TIMES = 4;
-
-NoPong::NoPong() {
-
-	//set up trail as if ball has been here for 'forever':
-	ball_trail.clear();
-
-	glm::vec2 ball = glm::vec2(0.0f, 0.0f);
-	glm::vec2 ball_velocity = glm::vec2(1.0f, 1.0f);
-	balls.emplace_back(ball, ball_velocity);
-
-	// emplace_back: push_back an in-place constructed elem
-	ball_trail.emplace_back(ball, trail_length);
-	ball_trail.emplace_back(ball, 0.0f);
-
+GameOver::GameOver() {
 	
 	//----- allocate OpenGL resources -----
 	{ //vertex buffer:
@@ -56,7 +41,7 @@ NoPong::NoPong() {
 		//set vertex_buffer as the source of glVertexAttribPointer() commands:
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 
-		//set up the vertex array object to describe arrays of NoPong::Vertex:
+		//set up the vertex array object to describe arrays of GameOver::Vertex:
 		glVertexAttribPointer(
 			color_texture_program.Position_vec4, //attribute
 			3, //size
@@ -126,7 +111,7 @@ NoPong::NoPong() {
 	}
 }
 
-NoPong::~NoPong() {
+GameOver::~GameOver() {
 
 	//----- free OpenGL resources -----
 	glDeleteBuffers(1, &vertex_buffer);
@@ -139,210 +124,21 @@ NoPong::~NoPong() {
 	white_tex = 0;
 }
 
-bool NoPong::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
+bool GameOver::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
 
-	if (evt.type == SDL_MOUSEMOTION) {
-		//convert mouse from window pixels (top-left origin, +y is down) to clip space ([-1,1]x[-1,1], +y is up):
-		glm::vec2 clip_mouse = glm::vec2(
-			(evt.motion.x + 0.5f) / window_size.x * 2.0f - 1.0f,
-			(evt.motion.y + 0.5f) / window_size.y *-2.0f + 1.0f
-		);
-		left_paddle.y = (clip_to_court * glm::vec3(clip_mouse, 1.0f)).y;
+	// Exit game
+	if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_ESCAPE) {
+		std::cout << "Goodbye" << std::endl;
+		Mode::set_current(false);
 	}
 
-	return false;
+	// truly exit, do not pass to main
+	return true;
 }
 
-void NoPong::update(float elapsed) {
+void GameOver::update(float elapsed) {}
 
-	static std::mt19937 mt; //mersenne twister pseudo-random number generator
-
-	//----- paddle update -----
-
-	{ //right player ai:
-		ai_offset_update -= elapsed;
-		if (ai_offset_update < elapsed) {
-			//update again in [0.5,1.0) seconds:
-			ai_offset_update = (mt() / float(mt.max())) * 0.5f + 0.5f;
-			ai_offset = (mt() / float(mt.max())) * 2.5f - 1.25f;
-		}
-
-		if (balls.size() < 1) {
-			std::cerr << "ERROR ball count: should be at least one." << std::endl;
-			return;
-		}
-
-		// select a random ball
-		auto ball = balls.begin()->ball;
-
-		if (right_paddle.y < ball.y + ai_offset) {
-			right_paddle.y = std::min(ball.y + ai_offset, right_paddle.y + 2.0f * elapsed);
-		} else {
-			right_paddle.y = std::max(ball.y + ai_offset, right_paddle.y - 2.0f * elapsed);
-		}
-	}
-
-	//clamp paddles to court:
-	right_paddle.y = std::max(right_paddle.y, -court_radius.y + paddle_radius.y);
-	right_paddle.y = std::min(right_paddle.y,  court_radius.y - paddle_radius.y);
-
-	left_paddle.y = std::max(left_paddle.y, -court_radius.y + paddle_radius.y);
-	left_paddle.y = std::min(left_paddle.y,  court_radius.y - paddle_radius.y);
-
-	//----- ball update -----
-
-	//speed of ball doubles every four points:
-	float speed_multiplier = 4.0f * std::pow(2.0f, (left_score) / 4.0f);
-
-	//velocity cap, though (otherwise ball can pass through paddles):
-	speed_multiplier = std::min(speed_multiplier, 10.0f);
-
-	for(auto ball = balls.begin(); ball != balls.end(); ball++) {
-		ball->ball += elapsed * speed_multiplier * ball->ball_velocity;
-	}
-
-	//---- collision handling ----
-
-	//paddles:
-	auto paddle_vs_ball = [this](glm::vec2 &ball, glm::vec2 &ball_velocity, glm::vec2 const &paddle, bool is_user) {
-		//compute area of overlap:
-		glm::vec2 min = glm::max(paddle - paddle_radius, ball - ball_radius);
-		glm::vec2 max = glm::min(paddle + paddle_radius, ball + ball_radius);
-
-		//if no overlap, no collision:
-		if (min.x > max.x || min.y > max.y) return false;
-
-		bool ret = false;
-
-		if (max.x - min.x > max.y - min.y) {
-			//wider overlap in x => bounce in y direction:
-			if (ball.y > paddle.y) {
-				ball.y = paddle.y + paddle_radius.y + ball_radius.y;
-				ball_velocity.y = std::abs(ball_velocity.y);
-			} else {
-				ball.y = paddle.y - paddle_radius.y - ball_radius.y;
-				ball_velocity.y = -std::abs(ball_velocity.y);
-			}
-			ret = true;
-		} else {
-			//wider overlap in y => bounce in x direction:
-			if (ball.x > paddle.x) {
-				ball.x = paddle.x + paddle_radius.x + ball_radius.x;
-				ball_velocity.x = std::abs(ball_velocity.x);
-			} else {
-				ball.x = paddle.x - paddle_radius.x - ball_radius.x;
-				ball_velocity.x = -std::abs(ball_velocity.x);
-			}
-			//warp y velocity based on offset from paddle center:
-			float vel = (ball.y - paddle.y) / (paddle_radius.y + ball_radius.y);
-			ball_velocity.y = glm::mix(ball_velocity.y, vel, 0.75f);
-			ret = true;
-		}
-		return ret;
-	};
-
-	std::vector<Ball>::iterator remove_one = balls.begin();
-	bool split_due_to_hit = false;
-
-	for(auto ball_ = balls.begin(); ball_ != balls.end(); ball_++) {
-		glm::vec2 &ball = ball_->ball;
-		glm::vec2 &ball_velocity = ball_->ball_velocity;
-		
-		// hit user paddle
-		if (paddle_vs_ball(ball, ball_velocity, left_paddle, true)) {
-			remove_one = ball_;
-			if (ball_ == balls.begin()) {
-				life_score--;
-			} else {
-				left_score++;
-			}
-		}
-
-		// hit opposite paddle
-		if (paddle_vs_ball(ball, ball_velocity, right_paddle, false)) {
-			if (ball_ == balls.begin()) {
-				split_due_to_hit = true;
-			}
-		}
-
-		bool hit_wall = false;
-
-		//court walls:
-		if (ball.y > court_radius.y - ball_radius.y) {
-			ball.y = court_radius.y - ball_radius.y;
-			if (ball_velocity.y > 0.0f) {
-				ball_velocity.y = -ball_velocity.y;
-			}
-		}
-		if (ball.y < -court_radius.y + ball_radius.y) {
-			ball.y = -court_radius.y + ball_radius.y;
-			if (ball_velocity.y < 0.0f) {
-				ball_velocity.y = -ball_velocity.y;
-			}
-		}
-
-		if (ball.x > court_radius.x - ball_radius.x) {
-			ball.x = court_radius.x - ball_radius.x;
-			if (ball_velocity.x > 0.0f) {
-				ball_velocity.x = -ball_velocity.x;
-				// hit ai wall
-				hit_wall = true;
-			}
-		}
-		if (ball.x < -court_radius.x + ball_radius.x) {
-			ball.x = -court_radius.x + ball_radius.x;
-			if (ball_velocity.x < 0.0f) {
-				ball_velocity.x = -ball_velocity.x;
-				// hit user wall
-				hit_wall = true;
-			}
-		}
-
-		if (hit_wall && ball_ == balls.begin()) {
-			hit_times++;
-			if (hit_times % SPLIT_TIMES == 0) {
-				split_due_to_hit = true;
-			}
-		}
-	}
-
-	// eat a ball
-	if (remove_one != balls.begin()) {
-		if (balls.size() > 1) {
-			std::cout << "eat 1 ball" << std::endl;
-			balls.erase(remove_one);
-		}
-	}
-
-	// whether split new ball
-	if (split_due_to_hit) {
-		auto target = balls.begin();
-		std::cout << "add 1 ball" << std::endl;
-		balls.emplace_back(target->ball, target->ball_velocity.x, -(target->ball_velocity.y));
-	}
-
-	//----- rainbow trails -----
-
-	//age up all locations in ball trail:
-	for (auto &t : ball_trail) {
-		t.z += elapsed;
-	}
-	//store fresh location at back of ball trail:
-	ball_trail.emplace_back(balls.begin()->ball, 0.0f);
-
-	//trim any too-old locations from back of trail:
-	//NOTE: since trail drawing interpolates between points, only removes back element if second-to-back element is too old:
-	while (ball_trail.size() >= 2 && ball_trail[1].z > trail_length) {
-		ball_trail.pop_front();
-	}
-
-	if (life_score <= 0) {
-		std::cout << "GAME OVER" << std::endl;
-		Mode::set_current(std::make_shared< GameOver >());
-	}
-}
-
-void NoPong::draw(glm::uvec2 const &drawable_size) {
+void GameOver::draw(glm::uvec2 const &drawable_size) {
 	//some nice colors from the course web page:
 	#define HEX_TO_U8VEC4( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
 	const glm::u8vec4 bg_color = HEX_TO_U8VEC4(0xf3ffc6ff);
@@ -391,33 +187,7 @@ void NoPong::draw(glm::uvec2 const &drawable_size) {
 	draw_rectangle(glm::vec2( court_radius.x+wall_radius, 0.0f)+s, glm::vec2(wall_radius, court_radius.y + 2.0f * wall_radius), shadow_color);
 	draw_rectangle(glm::vec2( 0.0f,-court_radius.y-wall_radius)+s, glm::vec2(court_radius.x, wall_radius), shadow_color);
 	draw_rectangle(glm::vec2( 0.0f, court_radius.y+wall_radius)+s, glm::vec2(court_radius.x, wall_radius), shadow_color);
-	draw_rectangle(left_paddle+s, paddle_radius, shadow_color);
-	draw_rectangle(right_paddle+s, paddle_radius, shadow_color);
-	for (auto ball: balls) {
-		draw_rectangle(ball.ball+s, ball_radius, shadow_color);
-	}
-
-	//ball's trail:
-	if (ball_trail.size() >= 2) {
-		//start ti at second element so there is always something before it to interpolate from:
-		std::deque< glm::vec3 >::iterator ti = ball_trail.begin() + 1;
-		//draw trail from oldest-to-newest:
-		for (uint32_t i = uint32_t(rainbow_colors.size())-1; i < rainbow_colors.size(); --i) {
-			//time at which to draw the trail element:
-			float t = (i + 1) / float(rainbow_colors.size()) * trail_length;
-			//advance ti until 'just before' t:
-			while (ti != ball_trail.end() && ti->z > t) ++ti;
-			//if we ran out of tail, stop drawing:
-			if (ti == ball_trail.end()) break;
-			//interpolate between previous and current trail point to the correct time:
-			glm::vec3 a = *(ti-1);
-			glm::vec3 b = *(ti);
-			glm::vec2 at = (t - a.z) / (b.z - a.z) * (glm::vec2(b) - glm::vec2(a)) + glm::vec2(a);
-			//draw:
-			draw_rectangle(at, ball_radius, rainbow_colors[i]);
-		}
-	}
-
+	
 	//solid objects:
 
 	//walls:
@@ -425,26 +195,6 @@ void NoPong::draw(glm::uvec2 const &drawable_size) {
 	draw_rectangle(glm::vec2( court_radius.x+wall_radius, 0.0f), glm::vec2(wall_radius, court_radius.y + 2.0f * wall_radius), fg_color);
 	draw_rectangle(glm::vec2( 0.0f,-court_radius.y-wall_radius), glm::vec2(court_radius.x, wall_radius), fg_color);
 	draw_rectangle(glm::vec2( 0.0f, court_radius.y+wall_radius), glm::vec2(court_radius.x, wall_radius), fg_color);
-
-	//paddles:
-	draw_rectangle(left_paddle, paddle_radius, fg_color);
-	draw_rectangle(right_paddle, paddle_radius, fg_color);
-	
-
-	//ball:
-	for (auto ball : balls) {
-		draw_rectangle(ball.ball, ball_radius, fg_color);
-	}
-
-	//scores:
-	glm::vec2 score_radius = glm::vec2(0.1f, 0.1f);
-	for (uint32_t i = 0; i < left_score; ++i) {
-		draw_rectangle(glm::vec2( -court_radius.x + (2.0f + 3.0f * i) * score_radius.x, court_radius.y + 2.0f * wall_radius + 2.0f * score_radius.y), score_radius, fg_color);
-	}
-	for (uint32_t i = 0; i < life_score; ++i) {
-		draw_rectangle(glm::vec2( court_radius.x - (2.0f + 3.0f * i) * score_radius.x, court_radius.y + 2.0f * wall_radius + 2.0f * score_radius.y), score_radius, life_color);
-	}
-
 
 
 	//------ compute court-to-window transform ------
@@ -456,7 +206,7 @@ void NoPong::draw(glm::uvec2 const &drawable_size) {
 	);
 	glm::vec2 scene_max = glm::vec2(
 		court_radius.x + 2.0f * wall_radius + padding,
-		court_radius.y + 2.0f * wall_radius + 3.0f * score_radius.y + padding
+		court_radius.y + 2.0f * wall_radius + padding
 	);
 
 	//compute window aspect ratio:
